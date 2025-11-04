@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code...'
+                git 'https://github.com/jrex027/your-repo.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Running build...'
+                sh 'echo "simulate build step"'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh 'echo "simulate test step"'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully ✅'
+        }
+        failure {
+            echo 'Pipeline failed ❌'
+        }
+    }
+}
