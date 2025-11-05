@@ -3,9 +3,11 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            steps {
+           steps {
                 echo 'Checking out code...'
-                git 'https://github.com/jrex027/GitHub-WebApplication2.git'
+                git branch: 'main',
+                    url: 'https://github.com/jrex027/GitHub-WebApplication2.git',
+                    credentialsId: 'github-token'
             }
         }
 
