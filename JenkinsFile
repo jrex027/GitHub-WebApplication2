@@ -1,27 +1,57 @@
 pipeline {
     agent { label 'Worker-Node' }
 
+    environment {
+        DOCKER_IMAGE = "jrex027/webapplication"
+        TAG = "v1"   // You can change version dynamically later
+    }
+
     stages {
         stage('Checkout') {
-           steps {
-                echo 'Checking out code...'
+            steps {
                 git branch: 'main',
                     url: 'https://github.com/jrex027/GitHub-WebApplication2.git',
                     credentialsId: 'github-token'
             }
         }
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Running build...'
-                sh 'echo "simulate build step"'
+                echo 'Building Docker Image on Worker Node...'
+                sh """
+                    docker build -t $DOCKER_IMAGE:$TAG WebApplication2
+                """
             }
         }
 
-        stage('Test') {
+        stage('Login to DockerHub') {
             steps {
-                echo 'Running tests...'
-                sh 'echo "simulate test step"'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'jrex027@gmail.com', passwordVariable: 'AmericaLondon@123')]) {
+                    sh """
+                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                    """
+                }
+            }
+        }
+
+        stage('Push Image to DockerHub') {
+            steps {
+                echo 'Pushing Image to Docker Hub...'
+                sh """
+                    docker push $DOCKER_IMAGE:$TAG
+                """
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                echo 'Running Container...'
+                sh """
+                    docker stop myapp_container || true
+                    docker rm myapp_container || true
+
+                    docker run -d --name myapp_container -p 8080:80 $DOCKER_IMAGE:$TAG
+                """
             }
         }
     }
