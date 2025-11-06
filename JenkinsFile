@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'Worker-Node' }
+    agent { label 'Worker_Node' }
 
     environment {
         DOCKER_IMAGE = "jrex027/webapplication"
