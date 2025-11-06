@@ -1,9 +1,9 @@
 pipeline {
-    agent { label 'Worker_Node' }
+    agent { label 'Worker-Node' }
 
     environment {
         DOCKER_IMAGE = "jrex027/webapplication"
-        TAG = "v1"   // You can change version dynamically later
+        TAG = "v1"
     }
 
     stages {
@@ -17,18 +17,18 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building Docker Image on Worker Node...'
+                echo 'Building Docker Image from WebApplication2/Dockerfile...'
                 sh """
-                    docker build -t $DOCKER_IMAGE:$TAG WebApplication2
+                    docker build -t $DOCKER_IMAGE:$TAG -f WebApplication2/Dockerfile WebApplication2
                 """
             }
         }
 
         stage('Login to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'jrex027@gmail.com', passwordVariable: 'AmericaLondon@123')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh """
-                        echo "$PASS" | docker login -u "$USER" --password-stdin
+                        echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
                     """
                 }
             }
@@ -36,7 +36,7 @@ pipeline {
 
         stage('Push Image to DockerHub') {
             steps {
-                echo 'Pushing Image to Docker Hub...'
+                echo 'Pushing Image to DockerHub...'
                 sh """
                     docker push $DOCKER_IMAGE:$TAG
                 """
@@ -46,10 +46,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline completed successfully ✅'
+            echo '✅ Docker Image Built & Pushed Successfully!'
         }
         failure {
-            echo 'Pipeline failed ❌'
+            echo '❌ Pipeline Failed!'
         }
     }
 }
