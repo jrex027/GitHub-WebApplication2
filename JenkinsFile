@@ -1,8 +1,8 @@
 pipeline {
-    agent { label 'Worker-Node' }
+    agent { label 'Workernode-1' }
 
     environment {
-        DOCKER_IMAGE = "jrex027/webapplication"
+        IMAGE_NAME = "jrex027/webapplication"
         TAG = "v1"
     }
 
@@ -15,20 +15,21 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Container Image') {
             steps {
-                echo 'Building Docker Image from WebApplication2/Dockerfile...'
+                echo 'Building Container Image using Podman...'
                 sh """
-                    docker build -t $DOCKER_IMAGE:$TAG -f WebApplication2/Dockerfile WebApplication2
+                    podman build -t ${IMAGE_NAME}:${TAG} -f WebApplication2/Dockerfile WebApplication2
                 """
             }
         }
 
         stage('Login to DockerHub') {
             steps {
+                echo 'Logging in to DockerHub via Podman...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh """
-                        echo "$PASSWORD" | docker login -u "$USERNAME" --password-stdin
+                        echo "$PASSWORD" | podman login docker.io -u "$USERNAME" --password-stdin
                     """
                 }
             }
@@ -38,7 +39,7 @@ pipeline {
             steps {
                 echo 'Pushing Image to DockerHub...'
                 sh """
-                    docker push $DOCKER_IMAGE:$TAG
+                    podman push ${IMAGE_NAME}:${TAG}
                 """
             }
         }
@@ -46,7 +47,7 @@ pipeline {
 
     post {
         success {
-            echo '✅ Docker Image Built & Pushed Successfully!'
+            echo '✅ Podman Image Built & Pushed Successfully!'
         }
         failure {
             echo '❌ Pipeline Failed!'
