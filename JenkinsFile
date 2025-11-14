@@ -5,12 +5,14 @@ pipeline {
         IMAGE_NAME = "jrex027/webapplication"
         TAG = "v1"
     }
-    parameters {
-        string(name: '$Reboot_Status', defaultValue: 'dev', description: 'Environment to deploy to')
-    }
+
     stages {
-        stage(name) {
+        stage('Checkout') {
             steps {
+                sh """
+                    echo "Deploying to environment: ${params.ENVIRONMENT}"
+                    ./deploy.sh ${params.ENVIRONMENT}
+                """
                 git branch: 'main',
                     url: 'https://github.com/jrex027/GitHub-WebApplication2.git',
                     credentialsId: 'github-token'
