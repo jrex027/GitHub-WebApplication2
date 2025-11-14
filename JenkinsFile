@@ -10,8 +10,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 sh """
-                    echo "Deploying to environment: ${params.ENVIRONMENT}"
-                    ./deploy.sh ${params.ENVIRONMENT}
+                    echo "Deploying to environment: ${params.ENVIRONMENT} - ${params.USERNAME}"
                 """
                 git branch: 'main',
                     url: 'https://github.com/jrex027/GitHub-WebApplication2.git',
