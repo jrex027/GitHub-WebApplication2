@@ -1,0 +1,84 @@
+pipeline {
+    agent { label 'Workernode-1' }
+
+    environment {
+        IMAGE_NAME = "jrex027/webapplication"
+        TAG = "v1"
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "your-eks-cluster"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/jrex027/GitHub-WebApplication2.git',
+                    credentialsId: 'github-token'
+            }
+        }
+
+        stage('Build Image') {
+            steps {
+                echo "Building Podman Image..."
+                sh """
+                    podman build -t ${IMAGE_NAME}:${TAG} -f WebApplication2/Dockerfile WebApplication2
+                """
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh """
+                        echo "$PASSWORD" | podman login docker.io -u "$USERNAME" --password-stdin
+                        podman push ${IMAGE_NAME}:${TAG}
+                    """
+                }
+            }
+        }
+
+        stage('Configure AWS Auth') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
+                    credentialsId: 'aws-creds']]) {
+                    sh """
+                        aws configure set region ${AWS_REGION}
+                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                echo "Deploying to EKS..."
+
+                sh """
+                    sed -i 's#jrex027/webapplication:.*#${IMAGE_NAME}:${TAG}#' k8s/deployment.yaml
+
+                    kubectl apply -f k8s/deployment.yaml
+                    kubectl apply -f k8s/service.yaml
+                """
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh """
+                    kubectl get pods
+                    kubectl get svc
+                """
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "🚀 Deployment Completed Successfully"
+        }
+        failure {
+            echo "❌ Deployment Failed"
+        }
+    }
+}
