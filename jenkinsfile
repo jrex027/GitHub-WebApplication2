@@ -4,6 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = "jrex027/webapplication"
         TAG = "v1"
+        AWS_ACCESS_KEY_ID     = "AKIAQGX4LLZQ7BKH22UC"
+        AWS_SECRET_ACCESS_KEY = "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"
         AWS_REGION = "us-east-1"
         CLUSTER_NAME = "demo-cluster"
     }
@@ -40,13 +42,11 @@ pipeline {
 
         stage('Configure AWS Auth') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', 
-                    credentialsId: 'aws-creds']]) {
-                    sh """
-                        aws configure set region ${AWS_REGION}
-                        aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
-                    """
-                }
+                sh """
+                    export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+                    export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+                    aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+                """
             }
         }
 
