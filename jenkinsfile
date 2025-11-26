@@ -57,10 +57,10 @@ pipeline {
                 echo "Deploying to EKS..."
 
                 sh """
-                    sed -i 's#jrex027/webapplication:.*#${IMAGE_NAME}:${TAG}#' k8s/deployment.yaml
+                    sed -i 's#jrex027/webapplication:.*#${IMAGE_NAME}:${TAG}#' K8s/deployment.yaml
 
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f K8s/deployment.yaml
+                    kubectl apply -f K8s/service.yaml
                 """
             }
         }
